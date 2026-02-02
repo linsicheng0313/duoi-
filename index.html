@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>小心！Duoi哥的女朋友来啦！</title>
+    <style>
+        body {
+            background-color: #f0faff;
+            font-family: "Microsoft YaHei", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            text-align: center;
+        }
+        .bg-penguin { position: fixed; font-size: 24px; opacity: 0.2; z-index: -1; user-select: none; }
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            z-index: 10;
+            width: 90%;
+            max-width: 550px;
+            border: 2px solid #c3e6cb;
+        }
+        h1 { color: #ff6b6b; font-size: 1.6rem; margin-bottom: 20px; }
+        button {
+            padding: 12px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+            border-radius: 50px;
+            margin: 10px;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-no { background-color: #4dabf7; color: white; }
+        .btn-yes { background-color: #ff8787; color: white; }
+        
+        #moving-yes { position: absolute; z-index: 100; transition: all 0.1s ease; }
+        /* 第二关：否按钮现在恢复 pointer-events，可以点击 */
+        #sticky-no { position: fixed; z-index: 1000; white-space: nowrap; }
+
+        .footer { position: fixed; bottom: 15px; color: #868e96; font-size: 0.9rem; }
+        .modal {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border: 4px solid #ff8787;
+            border-radius: 20px;
+            display: none;
+            z-index: 2000;
+        }
+        input { padding: 8px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<script>
+    for(let i=0; i<25; i++) {
+        const div = document.createElement('div');
+        div.className = 'bg-penguin';
+        div.innerText = '🐧';
+        div.style.left = Math.random() * 100 + 'vw';
+        div.style.top = Math.random() * 100 + 'vh';
+        document.body.appendChild(div);
+    }
+</script>
+
+<div id="stage1" class="container">
+    <div style="font-size:50px">🐧</div>
+    <h1>一、duoi哥的女朋友是否要打我？</h1>
+    <button class="btn-no" onclick="win()">否</button>
+    <button id="moving-yes" class="btn-yes" onclick="goStage(2)">是</button>
+</div>
+
+<div id="stage2" class="container" style="display:none;">
+    <div style="font-size:50px">💢🐧</div>
+    <h1>二、duoi哥的女朋友是否要打我？</h1>
+    <button id="sticky-no" class="btn-no" onclick="win()">否</button>
+    <button class="btn-yes" onclick="goStage(3)">是</button>
+</div>
+
+<div id="stage3" class="container" style="display:none;">
+    <div style="font-size:50px">🎁🐧</div>
+    <h1>三、duoi哥的女朋友是否要打我？</h1>
+    <button class="btn-no" onclick="showInputModal()">A.否，但是duoiduoi给你150港币</button>
+    <button class="btn-yes" onclick="goStage(4)">B.是</button>
+</div>
+
+<div id="stage4" class="container" style="display:none;">
+    <div style="font-size:50px">🕵️‍♂️🐧</div>
+    <h1>四、duoi哥的女朋友是否要打我？</h1>
+    <p style="color:#888">(否按钮已经被duoiduoi藏起来了)</p>
+    <button class="btn-no" onclick="win()">是</button>
+</div>
+
+<div id="inputModal" class="modal">
+    <p>太棒了！duoiduoi做这个网页废了很大的心思，<br>请说一句<b>”duoiduoi做html幸苦了“</b></p>
+    <button onclick="closeModal()" style="background:#eee">返回</button>
+    <br>
+    输入：<input type="text" id="thankText">
+    <button onclick="checkThanks()" class="btn-no">提交</button>
+</div>
+
+<div id="finalWin" class="container" style="display:none;">
+    <h1>太棒了！</h1>
+    <div id="qrArea" style="display:none;">
+        <p>谢谢你！请扫二维码领取红包。</p>
+        <img src="付款码.jpg" style="max-width:250px; border:5px solid white;">
+    </div>
+    <div style="font-size:40px">🐧✨🎉</div>
+</div>
+
+<div class="footer">页面由林思成制作</div>
+
+<script>
+    let mouseX = 0, mouseY = 0, lastX = 0, lastY = 0;
+    let isSticking = false, stage = 1;
+
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        if (stage === 2 && isSticking) {
+            let speed = Math.sqrt(Math.pow(mouseX - lastX, 2) + Math.pow(mouseY - lastY, 2));
+            // 甩鼠标逻辑：如果速度够快，暂时解绑
+            if (speed > 85) {
+                isSticking = false;
+            } else {
+                const btn = document.getElementById('sticky-no');
+                // 按钮中心对齐鼠标
+                btn.style.left = (mouseX - btn.offsetWidth / 2) + 'px';
+                btn.style.top = (mouseY - btn.offsetHeight / 2) + 'px';
+            }
+        }
+        lastX = mouseX; lastY = mouseY;
+    });
+
+    const movingYes = document.getElementById('moving-yes');
+    let missCount = 0;
+    movingYes.addEventListener('mouseenter', () => {
+        missCount++;
+        if (missCount > 5) {
+            movingYes.style.left = '50%'; movingYes.style.top = '70%';
+            movingYes.innerText = "是：“我累了”";
+        } else {
+            const corners = [{t:'5%',l:'5%'}, {t:'85%',l:'85%'}, {t:'5%',l:'85%'}, {t:'85%',l:'5%'}];
+            let pos = corners[missCount % 4];
+            movingYes.style.top = pos.t; movingYes.style.left = pos.l;
+        }
+    });
+
+    function goStage(n) {
+        stage = n;
+        document.querySelectorAll('.container').forEach(c => c.style.display = 'none');
+        document.getElementById('stage' + n).style.display = 'block';
+        if (n === 2) {
+            isSticking = true;
+            const btn = document.getElementById('sticky-no');
+            btn.style.display = 'inline-block';
+            btn.style.left = mouseX + 'px'; btn.style.top = mouseY + 'px';
+        } else {
+            isSticking = false;
+            document.getElementById('sticky-no').style.display = 'none';
+        }
+    }
+
+    // 当鼠标重新划入“否”按钮，它又会粘上来
+    document.getElementById('sticky-no').addEventListener('mouseenter', () => {
+        if (stage === 2) isSticking = true;
+    });
+
+    function win() {
+        stage = 0;
+        document.querySelectorAll('.container').forEach(c => c.style.display = 'none');
+        document.getElementById('sticky-no').style.display = 'none';
+        document.getElementById('finalWin').style.display = 'block';
+    }
+
+    function showInputModal() { document.getElementById('inputModal').style.display = 'block'; }
+    function closeModal() { document.getElementById('inputModal').style.display = 'none'; }
+    function checkThanks() {
+        if (document.getElementById('thankText').value === "duoiduoi做html幸苦了") {
+            closeModal(); win(); document.getElementById('qrArea').style.display = 'block';
+        } else { alert("要写对字哦！"); }
+    }
+</script>
+</body>
+</html>
